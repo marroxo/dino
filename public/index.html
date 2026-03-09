@@ -957,19 +957,6 @@
       section { padding: 4rem 1rem; }
     }
 
-    /* ===== ADS BANNER ===== */
-    .ads-section { padding: 0 2rem 3rem; }
-    .ads-grid { display: flex; flex-direction: column; gap: 0.75rem; }
-    .ad-card {
-      background: linear-gradient(135deg, rgba(0,229,160,0.08) 0%, rgba(0,229,160,0.03) 100%);
-      border: 1px solid rgba(0,229,160,0.2);
-      border-radius: var(--radius); padding: 1rem 1.5rem;
-      display: flex; align-items: center; gap: 1rem;
-    }
-    .ad-icon { font-size: 1.5rem; flex-shrink: 0; }
-    .ad-title { font-weight: 700; color: var(--accent); font-size: 0.95rem; }
-    .ad-text { color: var(--text2); font-size: 0.85rem; margin-top: 0.15rem; }
-
     /* ===== 18+ MODAL ===== */
     #ageModal {
       position: fixed; inset: 0; z-index: 9999;
@@ -1053,28 +1040,7 @@
       <span class="section-tag">// novosti</span>
       <h2 class="section-title">Što je <em>novo</em>?</h2>
     </div>
-    <div class="news-grid">
-      <div class="news-card fade-up">
-        <span class="badge badge-restock">RESTOCK</span>
-        <p class="news-text">Crystal Pro — okus Jagoda ponovno dostupan! Ne propusti, zalihe su ograničene.</p>
-        <span class="news-date">09.03.2026</span>
-      </div>
-      <div class="news-card fade-up">
-        <span class="badge badge-novo">NOVO</span>
-        <p class="news-text">Stigao novi ELF BAR BC5000 u 6 novih okusa — uključujući ekskluzivni Lemon Mint.</p>
-        <span class="news-date">07.03.2026</span>
-      </div>
-      <div class="news-card fade-up">
-        <span class="badge badge-promo">PROMO</span>
-        <p class="news-text">Akcija na sve Crystal modele — 15% popusta do kraja tjedna. Iskoristi odmah!</p>
-        <span class="news-date">05.03.2026</span>
-      </div>
-      <div class="news-card fade-up">
-        <span class="badge badge-restock">RESTOCK</span>
-        <p class="news-text">Lost Mary BM5000 Mango Ice — opet na stanju! Jedan od najprodavanijih okusa.</p>
-        <span class="news-date">03.03.2026</span>
-      </div>
-    </div>
+    <div class="news-grid" id="novostiGrid"></div>
   </div>
 </section>
 
@@ -1090,11 +1056,6 @@
 </section>
 
 <!-- ANKETA -->
-<!-- ADS BANNERS -->
-<div class="ads-section" id="adsSection" style="display:none">
-  <div class="ads-grid" id="adsGrid"></div>
-</div>
-
 <section id="anketa">
   <div class="container">
     <div class="section-header">
@@ -1450,46 +1411,45 @@ function denyAge() {
   document.getElementById('ageDeny').style.display = 'block';
 }
 
-// ===== RENDER ADS =====
-function renderAds(ads) {
-  if (!ads || !ads.length) return;
-  const section = document.getElementById('adsSection');
-  const grid = document.getElementById('adsGrid');
-  grid.innerHTML = ads.map(a => `
-    <div class="ad-card">
-      <div class="ad-icon">${a.title.match(/^\p{Emoji}/u)?.[0] || '📢'}</div>
-      <div>
-        <div class="ad-title">${a.title}</div>
-        <div class="ad-text">${a.text}</div>
-      </div>
+// ===== RENDER NOVOSTI =====
+function renderNovosti(novosti) {
+  const grid = document.getElementById('novostiGrid');
+  if (!novosti || !novosti.length) {
+    grid.innerHTML = '<div style="color:var(--text3);text-align:center;padding:2rem">Nema novosti.</div>';
+    return;
+  }
+  grid.innerHTML = novosti.map(n => `
+    <div class="news-card fade-up">
+      <span class="badge badge-${n.badge}">${n.badge.toUpperCase()}</span>
+      <p class="news-text">${n.tekst}</p>
+      <span class="news-date">${n.datum}</span>
     </div>
   `).join('');
-  section.style.display = 'block';
 }
 
 // ===== INIT =====
 async function init() {
   try {
-    const [productsRes, pollRes, settingsRes, adsRes] = await Promise.all([
+    const [productsRes, pollRes, settingsRes, novostiRes] = await Promise.all([
       fetch('/api/products'),
       fetch('/api/poll'),
       fetch('/api/settings'),
-      fetch('/api/ads')
+      fetch('/api/novosti')
     ]);
     products = await productsRes.json();
     pollData = await pollRes.json();
     const settings = await settingsRes.json();
-    const ads = await adsRes.json();
+    const novosti = await novostiRes.json();
 
     // Age verification
     if (settings.age_verification && !sessionStorage.getItem('age_ok')) {
       document.getElementById('ageModal').classList.remove('hidden');
     }
 
+    renderNovosti(novosti);
     renderProducts();
     loadPollState();
     renderPoll();
-    renderAds(ads);
     observeFade();
 
     if (pollState.revealed) {

@@ -87,9 +87,9 @@ app.get('/api/settings', (req, res) => {
   res.json(readData().settings);
 });
 
-app.get('/api/ads', (req, res) => {
+app.get('/api/novosti', (req, res) => {
   const data = readData();
-  res.json(data.ads.filter(a => a.active));
+  res.json(data.novosti.filter(n => n.active));
 });
 
 // ===== ADMIN API — PRODUCTS =====
@@ -196,35 +196,41 @@ app.put('/api/admin/settings', requireAuth, (req, res) => {
   res.json(data.settings);
 });
 
-// ===== ADMIN API — ADS =====
-app.get('/api/admin/ads', requireAuth, (req, res) => {
-  res.json(readData().ads);
+// ===== ADMIN API — NOVOSTI =====
+app.get('/api/admin/novosti', requireAuth, (req, res) => {
+  res.json(readData().novosti);
 });
 
-app.post('/api/admin/ads', requireAuth, (req, res) => {
+app.post('/api/admin/novosti', requireAuth, (req, res) => {
   const data = readData();
-  const { title, text, active } = req.body;
-  const newId = data.ads.length > 0 ? Math.max(...data.ads.map(a => a.id)) + 1 : 1;
-  const ad = { id: newId, title: title || '', text: text || '', active: active !== false };
-  data.ads.push(ad);
+  const { badge, tekst, datum, active } = req.body;
+  const newId = data.novosti.length > 0 ? Math.max(...data.novosti.map(n => n.id)) + 1 : 1;
+  const novost = {
+    id: newId,
+    badge: badge || 'novo',
+    tekst: tekst || '',
+    datum: datum || new Date().toLocaleDateString('hr-HR'),
+    active: active !== false
+  };
+  data.novosti.push(novost);
   writeData(data);
-  res.json(ad);
+  res.json(novost);
 });
 
-app.put('/api/admin/ads/:id', requireAuth, (req, res) => {
+app.put('/api/admin/novosti/:id', requireAuth, (req, res) => {
   const data = readData();
   const id = parseInt(req.params.id);
-  const idx = data.ads.findIndex(a => a.id === id);
+  const idx = data.novosti.findIndex(n => n.id === id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  data.ads[idx] = { ...data.ads[idx], ...req.body, id };
+  data.novosti[idx] = { ...data.novosti[idx], ...req.body, id };
   writeData(data);
-  res.json(data.ads[idx]);
+  res.json(data.novosti[idx]);
 });
 
-app.delete('/api/admin/ads/:id', requireAuth, (req, res) => {
+app.delete('/api/admin/novosti/:id', requireAuth, (req, res) => {
   const data = readData();
   const id = parseInt(req.params.id);
-  data.ads = data.ads.filter(a => a.id !== id);
+  data.novosti = data.novosti.filter(n => n.id !== id);
   writeData(data);
   res.json({ ok: true });
 });

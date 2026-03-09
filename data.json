@@ -24,8 +24,10 @@
   "settings": {
     "age_verification": true
   },
-  "ads": [
-    { "id": 1, "title": "🔥 Posebna ponuda!", "text": "Kupi 2 Crystal Pro, treći gratis! Vrijedi ovaj tjedan.", "active": true },
-    { "id": 2, "title": "🚚 Besplatna dostava", "text": "Za narudžbe iznad €25 dostava je besplatna u cijeloj Hrvatskoj.", "active": true }
+  "novosti": [
+    { "id": 1, "badge": "restock", "tekst": "Crystal Pro — okus Jagoda ponovno dostupan! Ne propusti, zalihe su ograničene.", "datum": "09.03.2026", "active": true },
+    { "id": 2, "badge": "novo", "tekst": "Stigao novi ELF BAR BC5000 u 6 novih okusa — uključujući ekskluzivni Lemon Mint.", "datum": "07.03.2026", "active": true },
+    { "id": 3, "badge": "promo", "tekst": "Akcija na sve Crystal modele — 15% popusta do kraja tjedna. Iskoristi odmah!", "datum": "05.03.2026", "active": true },
+    { "id": 4, "badge": "restock", "tekst": "Lost Mary BM5000 Mango Ice — opet na stanju! Jedan od najprodavanijih okusa.", "datum": "03.03.2026", "active": true }
   ]
 }

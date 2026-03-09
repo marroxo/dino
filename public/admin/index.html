@@ -229,8 +229,8 @@
       <div class="sidebar-item" data-tab="poll">
         <span class="icon">📊</span> Anketa
       </div>
-      <div class="sidebar-item" data-tab="ads">
-        <span class="icon">📢</span> Oglasi
+      <div class="sidebar-item" data-tab="novosti">
+        <span class="icon">📰</span> Novosti
       </div>
       <div class="sidebar-item" data-tab="settings">
         <span class="icon">⚙️</span> Postavke
@@ -288,13 +288,13 @@
         </div>
       </div>
 
-      <!-- ADS TAB -->
-      <div class="tab-panel" id="tab-ads">
+      <!-- NOVOSTI TAB -->
+      <div class="tab-panel" id="tab-novosti">
         <div class="toolbar">
-          <h1 class="page-title">Oglasi</h1>
-          <button class="btn btn-primary" onclick="openAdModal()">+ Novi oglas</button>
+          <h1 class="page-title">Novosti</h1>
+          <button class="btn btn-primary" onclick="openNovostModal()">+ Nova novost</button>
         </div>
-        <div id="adsList"></div>
+        <div id="novostiList"></div>
       </div>
 
       <!-- SETTINGS TAB -->
@@ -402,31 +402,41 @@
   </div>
 </div>
 
-<!-- AD MODAL -->
-<div class="modal-overlay" id="adModal">
+<!-- NOVOST MODAL -->
+<div class="modal-overlay" id="novostModal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="adModalTitle">Novi oglas</div>
-      <button class="modal-close" onclick="closeAdModal()">✕</button>
+      <div class="modal-title" id="novostModalTitle">Nova novost</div>
+      <button class="modal-close" onclick="closeNovostModal()">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tip oznake</label>
+        <select id="nov_badge">
+          <option value="restock">RESTOCK</option>
+          <option value="novo">NOVO</option>
+          <option value="promo">PROMO</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Datum (npr. 09.03.2026)</label>
+        <input type="text" id="nov_datum" placeholder="09.03.2026" />
+      </div>
     </div>
     <div class="form-group" style="margin-bottom:1rem">
-      <label>Naslov oglasa</label>
-      <input type="text" id="ad_title" placeholder="🔥 Posebna ponuda!" />
-    </div>
-    <div class="form-group" style="margin-bottom:1rem">
-      <label>Tekst</label>
-      <textarea id="ad_text" placeholder="Kupi 2, plati 1! Vrijedi ovaj tjedan."></textarea>
+      <label>Tekst novosti</label>
+      <textarea id="nov_tekst" placeholder="Crystal Pro — okus Jagoda ponovno dostupan!"></textarea>
     </div>
     <div class="form-group" style="flex-direction:row;align-items:center;gap:0.75rem">
       <label class="toggle" style="margin:0">
-        <input type="checkbox" id="ad_active" checked />
+        <input type="checkbox" id="nov_active" checked />
         <span class="toggle-slider"></span>
       </label>
-      <span style="font-size:0.9rem;color:var(--text2)">Aktivan</span>
+      <span style="font-size:0.9rem;color:var(--text2)">Aktivna</span>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeAdModal()">Odustani</button>
-      <button class="btn btn-primary" onclick="saveAd()">Spremi</button>
+      <button class="btn btn-ghost" onclick="closeNovostModal()">Odustani</button>
+      <button class="btn btn-primary" onclick="saveNovost()">Spremi</button>
     </div>
   </div>
 </div>
@@ -438,11 +448,11 @@
 // ===== STATE =====
 let products = [];
 let pollData = [];
-let ads = [];
+let novosti = [];
 let settings = {};
 let editingProductId = null;
 let editingPollIdx = null;
-let editingAdId = null;
+let editingNovostId = null;
 
 // ===== TOAST =====
 let toastTimer;
@@ -506,7 +516,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
 
 // ===== LOAD ALL =====
 async function loadAll() {
-  await Promise.all([loadProducts(), loadPoll(), loadAds(), loadSettings()]);
+  await Promise.all([loadProducts(), loadPoll(), loadNovosti(), loadSettings()]);
 }
 
 // ===== PRODUCTS =====
@@ -636,70 +646,76 @@ async function deletePollItem(idx) {
   await loadPoll();
 }
 
-// ===== ADS =====
-async function loadAds() {
-  const r = await fetch('/api/admin/ads');
-  ads = await r.json();
-  renderAds();
+// ===== NOVOSTI =====
+const badgeLabels = { restock: 'RESTOCK', novo: 'NOVO', promo: 'PROMO' };
+const badgeClass = { restock: 'badge-available', novo: 'badge-novo', promo: 'badge-promo' };
+
+async function loadNovosti() {
+  const r = await fetch('/api/admin/novosti');
+  novosti = await r.json();
+  renderNovosti();
 }
 
-function renderAds() {
-  const container = document.getElementById('adsList');
-  if (!ads.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">📢</div><div>Nema oglasa</div></div>';
+function renderNovosti() {
+  const container = document.getElementById('novostiList');
+  if (!novosti.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📰</div><div>Nema novosti</div></div>';
     return;
   }
-  container.innerHTML = ads.map(a => `
+  container.innerHTML = novosti.map(n => `
     <div class="card" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
       <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem">
-          <span style="font-weight:700;font-size:1rem">${a.title}</span>
-          <span class="badge ${a.active ? 'badge-available' : 'badge-out'}">${a.active ? 'Aktivan' : 'Neaktivan'}</span>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;flex-wrap:wrap">
+          <span class="badge ${badgeClass[n.badge] || 'badge-available'}">${badgeLabels[n.badge] || n.badge.toUpperCase()}</span>
+          <span style="font-family:var(--mono);font-size:0.75rem;color:var(--text3)">${n.datum}</span>
+          <span class="badge ${n.active ? 'badge-available' : 'badge-out'}" style="font-size:0.65rem">${n.active ? 'Aktivna' : 'Neaktivna'}</span>
         </div>
-        <div style="color:var(--text2);font-size:0.9rem">${a.text}</div>
+        <div style="color:var(--text);font-size:0.92rem">${n.tekst}</div>
       </div>
       <div style="display:flex;gap:0.5rem;flex-shrink:0">
-        <button class="btn btn-ghost btn-sm" onclick="openAdModal(${a.id})">✏️ Uredi</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteAd(${a.id})">🗑 Obriši</button>
+        <button class="btn btn-ghost btn-sm" onclick="openNovostModal(${n.id})">✏️ Uredi</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNovost(${n.id})">🗑 Obriši</button>
       </div>
     </div>
   `).join('');
 }
 
-function openAdModal(id = null) {
-  editingAdId = id;
-  const a = id ? ads.find(x => x.id === id) : null;
-  document.getElementById('adModalTitle').textContent = id ? 'Uredi oglas' : 'Novi oglas';
-  document.getElementById('ad_title').value = a ? a.title : '';
-  document.getElementById('ad_text').value = a ? a.text : '';
-  document.getElementById('ad_active').checked = a ? a.active : true;
-  document.getElementById('adModal').classList.add('open');
+function openNovostModal(id = null) {
+  editingNovostId = id;
+  const n = id ? novosti.find(x => x.id === id) : null;
+  document.getElementById('novostModalTitle').textContent = id ? 'Uredi novost' : 'Nova novost';
+  document.getElementById('nov_badge').value = n ? n.badge : 'novo';
+  document.getElementById('nov_datum').value = n ? n.datum : new Date().toLocaleDateString('hr-HR');
+  document.getElementById('nov_tekst').value = n ? n.tekst : '';
+  document.getElementById('nov_active').checked = n ? n.active : true;
+  document.getElementById('novostModal').classList.add('open');
 }
-function closeAdModal() { document.getElementById('adModal').classList.remove('open'); }
+function closeNovostModal() { document.getElementById('novostModal').classList.remove('open'); }
 
-async function saveAd() {
+async function saveNovost() {
   const body = {
-    title: document.getElementById('ad_title').value.trim(),
-    text: document.getElementById('ad_text').value.trim(),
-    active: document.getElementById('ad_active').checked
+    badge: document.getElementById('nov_badge').value,
+    datum: document.getElementById('nov_datum').value.trim(),
+    tekst: document.getElementById('nov_tekst').value.trim(),
+    active: document.getElementById('nov_active').checked
   };
-  if (!body.title) { toast('Unesite naslov oglasa!', 'error'); return; }
-  if (editingAdId) {
-    await fetch(`/api/admin/ads/${editingAdId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    toast('Oglas ažuriran ✓');
+  if (!body.tekst) { toast('Unesite tekst novosti!', 'error'); return; }
+  if (editingNovostId) {
+    await fetch(`/api/admin/novosti/${editingNovostId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    toast('Novost ažurirana ✓');
   } else {
-    await fetch('/api/admin/ads', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    toast('Oglas dodan ✓');
+    await fetch('/api/admin/novosti', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    toast('Novost dodana ✓');
   }
-  closeAdModal();
-  await loadAds();
+  closeNovostModal();
+  await loadNovosti();
 }
 
-async function deleteAd(id) {
-  if (!confirm('Obrisati ovaj oglas?')) return;
-  await fetch(`/api/admin/ads/${id}`, { method: 'DELETE' });
-  toast('Oglas obrisan', 'error');
-  await loadAds();
+async function deleteNovost(id) {
+  if (!confirm('Obrisati ovu novost?')) return;
+  await fetch(`/api/admin/novosti/${id}`, { method: 'DELETE' });
+  toast('Novost obrisana', 'error');
+  await loadNovosti();
 }
 
 // ===== SETTINGS =====
