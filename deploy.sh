@@ -9,7 +9,7 @@ set -e
 
 REPO_URL="https://github.com/marroxo/dino.git"
 BRANCH="main"
-APP_DIR="/var/www/dv"
+APP_DIR="/root/dv"
 APP_NAME="vapor-shop"
 PORT=3500
 
