@@ -9,7 +9,7 @@ set -e
 
 REPO_URL="https://github.com/marroxo/dino.git"
 BRANCH="main"
-APP_DIR="/var/www/vapor"
+APP_DIR="/var/www/dv"
 APP_NAME="vapor-shop"
 PORT=3500
 
@@ -65,7 +65,7 @@ if [ -d "$APP_DIR/.git" ]; then
   info "Repo azuriran na zadnji commit."
 else
   info "Klonam repo u $APP_DIR..."
-  mkdir -p "$(dirname "$APP_DIR")"
+  mkdir -p "$APP_DIR"
   git clone --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
   cd "$APP_DIR"
   info "Repo kloniran."
