@@ -235,6 +235,171 @@ app.delete('/api/admin/novosti/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ===== PUBLIC API — ORDERS =====
+app.post('/api/orders', (req, res) => {
+  const data = readData();
+  const { ime, email, tel, napomena, stavke, ukupno, placanje } = req.body;
+  if (!ime || !tel || !stavke || !placanje) {
+    return res.status(400).json({ error: 'Nedostaju podaci' });
+  }
+  const id = data.orders.length > 0 ? Math.max(...data.orders.map(o => o.id)) + 1 : 1;
+  const broj = `VPR-${String(id).padStart(3, '0')}`;
+  const datum = new Date().toLocaleString('hr-HR', { dateStyle: 'short', timeStyle: 'short' });
+  const order = { id, broj, ime, email: email || '', tel, napomena: napomena || '', stavke, ukupno, placanje, status: 'ceka_placanje', datum };
+  data.orders.push(order);
+  writeData(data);
+  res.json({ ok: true, id, broj });
+});
+
+// ===== ADMIN API — ORDERS =====
+app.get('/api/admin/orders', requireAuth, (req, res) => {
+  res.json(readData().orders.slice().reverse());
+});
+
+app.put('/api/admin/orders/:id', requireAuth, (req, res) => {
+  const data = readData();
+  const id = parseInt(req.params.id);
+  const idx = data.orders.findIndex(o => o.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  const allowed = ['status', 'napomena'];
+  allowed.forEach(k => { if (req.body[k] !== undefined) data.orders[idx][k] = req.body[k]; });
+  writeData(data);
+  res.json(data.orders[idx]);
+});
+
+app.delete('/api/admin/orders/:id', requireAuth, (req, res) => {
+  const data = readData();
+  const id = parseInt(req.params.id);
+  data.orders = data.orders.filter(o => o.id !== id);
+  writeData(data);
+  res.json({ ok: true });
+});
+
+// ===== ADMIN API — AI CHAT =====
+app.post('/api/admin/ai-chat', requireAuth, (req, res) => {
+  const data = readData();
+  const msg = (req.body.poruka || '').trim().toLowerCase().replace(/[čć]/g, 'c').replace(/[šs]/g, function(m){ return m === 'š' ? 's' : m; }).replace(/ž/g, 'z').replace(/đ/g, 'd');
+
+  // normalize helper for comparison
+  const norm = s => s.toLowerCase()
+    .replace(/č|ć/g, 'c')
+    .replace(/š/g, 's')
+    .replace(/ž/g, 'z')
+    .replace(/đ/g, 'd');
+  const input = norm(req.body.poruka || '');
+
+  // Extract order id from message
+  const idMatch = input.match(/\b(\d+)\b/);
+  const orderId = idMatch ? parseInt(idMatch[1]) : null;
+
+  const order = orderId ? data.orders.find(o => o.id === orderId || o.broj === `VPR-${String(orderId).padStart(3,'0')}`) : null;
+
+  function orderCard(o) {
+    const statusLabel = { ceka_placanje: '⏳ Čeka plaćanje', placeno: '✅ Plaćeno', otkazano: '❌ Otkazano' };
+    const placLabel = { bank: '🏦 Bank transfer', paypal: '💳 PayPal', uzivo: '🤝 Uživo' };
+    const lines = o.stavke.map(s => `  · ${s.model} × ${s.kolicina} — €${(s.cijena * s.kolicina).toFixed(2)}`).join('\n');
+    return `**${o.broj}** — ${o.ime}\n📞 ${o.tel}${o.email ? ' | 📧 ' + o.email : ''}\n${lines}\n💰 Ukupno: **€${parseFloat(o.ukupno).toFixed(2)}**\n${placLabel[o.placanje] || o.placanje} | ${statusLabel[o.status] || o.status}\n📅 ${o.datum}${o.napomena ? '\n📝 ' + o.napomena : ''}`;
+  }
+
+  // --- Command matching ---
+  // mark paid
+  if (order && /plac[ae]n/i.test(input) && /markir|oznac|postavi|stavi/i.test(input.replace(/[čćšžđ]/g, ''))) {
+    data.orders.find(o => o.id === order.id).status = 'placeno';
+    writeData(data);
+    return res.json({ odgovor: `✅ Narudžba **${order.broj}** označena kao **plaćena**.\n\n${orderCard({ ...order, status: 'placeno' })}` });
+  }
+  // mark cancelled
+  if (order && /otka[zž]/i.test(input) && /markir|oznac|postavi|stavi/i.test(input)) {
+    data.orders.find(o => o.id === order.id).status = 'otkazano';
+    writeData(data);
+    return res.json({ odgovor: `❌ Narudžba **${order.broj}** označena kao **otkazana**.\n\n${orderCard({ ...order, status: 'otkazano' })}` });
+  }
+  // mark pending
+  if (order && /cek[ao]|pending|na cekan/i.test(input)) {
+    data.orders.find(o => o.id === order.id).status = 'ceka_placanje';
+    writeData(data);
+    return res.json({ odgovor: `⏳ Narudžba **${order.broj}** vraćena na **čekanje**.` });
+  }
+  // add note
+  const biljeskaMatch = (req.body.poruka || '').match(/biljesk[ae]\s+(.+)/i);
+  if (order && biljeskaMatch) {
+    const napomena = biljeskaMatch[1].trim();
+    data.orders.find(o => o.id === order.id).napomena = napomena;
+    writeData(data);
+    return res.json({ odgovor: `📝 Bilješka dodana na narudžbu **${order.broj}**: "${napomena}"` });
+  }
+  // show single order
+  if (order) {
+    return res.json({ odgovor: orderCard(order) });
+  }
+  // list unpaid
+  if (/neplac|neplacen|cekaju|cek[ao] plac/.test(input)) {
+    const unpaid = data.orders.filter(o => o.status === 'ceka_placanje');
+    if (!unpaid.length) return res.json({ odgovor: '✅ Nema narudžbi koje čekaju plaćanje.' });
+    return res.json({ odgovor: `⏳ **${unpaid.length} narudžbi čeka plaćanje:**\n\n` + unpaid.slice(0,10).map(o => `· **${o.broj}** — ${o.ime} — €${parseFloat(o.ukupno).toFixed(2)} — ${o.datum}`).join('\n') });
+  }
+  // list paid
+  if (/placen[ae]|placeno/.test(input)) {
+    const paid = data.orders.filter(o => o.status === 'placeno');
+    if (!paid.length) return res.json({ odgovor: '📭 Nema plaćenih narudžbi.' });
+    return res.json({ odgovor: `✅ **${paid.length} plaćenih narudžbi:**\n\n` + paid.slice(0,10).map(o => `· **${o.broj}** — ${o.ime} — €${parseFloat(o.ukupno).toFixed(2)}`).join('\n') });
+  }
+  // stats
+  if (/statist|pregled|ukupno|prihod/.test(input)) {
+    const total = data.orders.length;
+    const paid = data.orders.filter(o => o.status === 'placeno').length;
+    const pending = data.orders.filter(o => o.status === 'ceka_placanje').length;
+    const cancelled = data.orders.filter(o => o.status === 'otkazano').length;
+    const revenue = data.orders.filter(o => o.status === 'placeno').reduce((s, o) => s + parseFloat(o.ukupno), 0);
+    return res.json({ odgovor: `📊 **Statistika narudžbi:**\n\n· Ukupno narudžbi: **${total}**\n· Plaćeno: **${paid}**\n· Na čekanju: **${pending}**\n· Otkazano: **${cancelled}**\n· Prihod (plaćene): **€${revenue.toFixed(2)}**` });
+  }
+  // list all
+  if (/sve narud|sve nardz|svi|nardzb[ei]|narudb/.test(input) || /^narud/.test(input)) {
+    const orders = data.orders.slice().reverse().slice(0, 10);
+    if (!orders.length) return res.json({ odgovor: '📭 Nema narudžbi.' });
+    const statusEmoji = { ceka_placanje: '⏳', placeno: '✅', otkazano: '❌' };
+    return res.json({ odgovor: `📋 **Zadnjih ${orders.length} narudžbi:**\n\n` + orders.map(o => `${statusEmoji[o.status]||'·'} **${o.broj}** — ${o.ime} — €${parseFloat(o.ukupno).toFixed(2)} — ${o.datum}`).join('\n') });
+  }
+  // help
+  return res.json({ odgovor: `👋 Kako mogu pomoći? Primjeri naredbi:\n\n· \`narudžba 3 markiraj plaćeno\`\n· \`narudžba 3 markiraj otkazano\`\n· \`narudžba 3 bilješka pozovite u 18h\`\n· \`narudžba 3\` — detalji narudžbe\n· \`sve narudžbe\` — lista svih\n· \`neplačene narudžbe\`\n· \`statistika\`` });
+});
+
+// ===== PAYPAL IPN WEBHOOK =====
+app.post('/api/paypal/ipn', async (req, res) => {
+  // Acknowledge to PayPal immediately
+  res.status(200).send('OK');
+  try {
+    const params = new URLSearchParams(req.body);
+    params.set('cmd', '_notify-validate');
+    const verify = await fetch('https://ipnpb.paypal.com/cgi-bin/webscr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+    const verifyText = await verify.text();
+    if (verifyText !== 'VERIFIED') return;
+
+    const paymentStatus = req.body.payment_status;
+    const custom = req.body.custom || '';      // order id stored in custom field
+    const itemName = req.body.item_name || ''; // fallback: "VPR-001" in item name
+
+    if (paymentStatus !== 'Completed') return;
+
+    const orderId = parseInt(custom) || parseInt((itemName.match(/VPR-(\d+)/) || [])[1]);
+    if (!orderId) return;
+
+    const data = readData();
+    const idx = data.orders.findIndex(o => o.id === orderId);
+    if (idx !== -1 && data.orders[idx].status === 'ceka_placanje') {
+      data.orders[idx].status = 'placeno';
+      writeData(data);
+      console.log(`[PayPal IPN] Narudžba VPR-${String(orderId).padStart(3,'0')} automatski označena kao plaćena`);
+    }
+  } catch (err) {
+    console.error('[PayPal IPN] Error:', err.message);
+  }
+});
+
 // ===== STATIC + ADMIN PANEL =====
 app.use('/admin', express.static(path.join(__dirname, 'public/admin')));
 app.get('/admin', (req, res) => {

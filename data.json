@@ -22,8 +22,14 @@
     { "emoji": "🍌", "name": "Banana Ice", "votes": 8 }
   ],
   "settings": {
-    "age_verification": true
+    "age_verification": true,
+    "iban": "HR12 2340 0091 1234 5678 9",
+    "vlasnik": "Dino Marković",
+    "banka": "Erste Bank",
+    "paypal": "paypal.me/vaporshop",
+    "paypal_email": "dino@email.com"
   },
+  "orders": [],
   "novosti": [
     { "id": 1, "badge": "restock", "tekst": "Crystal Pro — okus Jagoda ponovno dostupan! Ne propusti, zalihe su ograničene.", "datum": "09.03.2026", "active": true },
     { "id": 2, "badge": "novo", "tekst": "Stigao novi ELF BAR BC5000 u 6 novih okusa — uključujući ekskluzivni Lemon Mint.", "datum": "07.03.2026", "active": true },

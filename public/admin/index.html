@@ -80,6 +80,27 @@
     .sidebar-item:hover { background: var(--surface); color: var(--text); }
     .sidebar-item.active { background: var(--surface); color: var(--accent); border-left-color: var(--accent); }
     .sidebar-item .icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .sidebar-badge {
+      margin-left: auto; background: var(--warn); color: #000;
+      font-size: 0.65rem; font-weight: 700; border-radius: 100px;
+      padding: 0.1rem 0.45rem; min-width: 18px; text-align: center;
+    }
+    /* AI chat */
+    .chat-wrap { display: flex; flex-direction: column; height: calc(100vh - 200px); min-height: 400px; }
+    .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.85rem; padding: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; }
+    .chat-msg { max-width: 80%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap; }
+    .chat-msg.user { align-self: flex-end; background: var(--accent); color: #000; border-radius: var(--radius-sm) 0 var(--radius-sm) var(--radius-sm); }
+    .chat-msg.bot { align-self: flex-start; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm); }
+    .chat-msg.bot strong { color: var(--accent); }
+    .chat-msg.bot code { font-family: var(--mono); font-size: 0.82rem; background: rgba(0,229,160,0.1); padding: 0.1rem 0.3rem; border-radius: 3px; }
+    .chat-input-row { display: flex; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; }
+    .chat-input { flex: 1; background: var(--bg2); border: none; color: var(--text); padding: 0.85rem 1rem; font-family: var(--font); font-size: 0.9rem; outline: none; }
+    .chat-input::placeholder { color: var(--text3); }
+    .chat-send { background: var(--accent); border: none; color: #000; padding: 0.85rem 1.25rem; font-family: var(--font); font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: background 0.15s; }
+    .chat-send:hover { background: var(--accent2); }
+    /* badge styles for AI chat */
+    .badge-novo { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .badge-promo { background: rgba(255,153,68,0.15); color: var(--warn); }
 
     /* ===== CONTENT ===== */
     .content { flex: 1; padding: 2rem; overflow-y: auto; }
@@ -232,6 +253,13 @@
       <div class="sidebar-item" data-tab="novosti">
         <span class="icon">📰</span> Novosti
       </div>
+      <div class="sidebar-item" data-tab="orders">
+        <span class="icon">🛒</span> Narudžbe
+        <span class="sidebar-badge" id="pendingBadge" style="display:none"></span>
+      </div>
+      <div class="sidebar-item" data-tab="aichat">
+        <span class="icon">🤖</span> AI Chat
+      </div>
       <div class="sidebar-item" data-tab="settings">
         <span class="icon">⚙️</span> Postavke
       </div>
@@ -297,6 +325,37 @@
         <div id="novostiList"></div>
       </div>
 
+      <!-- ORDERS TAB -->
+      <div class="tab-panel" id="tab-orders">
+        <div class="toolbar">
+          <h1 class="page-title">Narudžbe <span id="ordersCount"></span></h1>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <select id="ordersFilter" onchange="renderOrders()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;border-radius:var(--radius-sm);font-family:var(--font);font-size:0.85rem;outline:none">
+              <option value="all">Sve narudžbe</option>
+              <option value="ceka_placanje">Na čekanju</option>
+              <option value="placeno">Plaćeno</option>
+              <option value="otkazano">Otkazano</option>
+            </select>
+          </div>
+        </div>
+        <div id="ordersList"></div>
+      </div>
+
+      <!-- AI CHAT TAB -->
+      <div class="tab-panel" id="tab-aichat">
+        <h1 class="page-title" style="margin-bottom:0.5rem">AI Asistent</h1>
+        <p style="color:var(--text3);font-size:0.85rem;margin-bottom:1.25rem">Upravljaj narudžbama glasovnim naredbama. Npr: <em style="color:var(--text2)">narudžba 3 markiraj plaćeno</em></p>
+        <div class="chat-wrap">
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg bot">👋 Pozdrav! Ja sam tvoj AI asistent za upravljanje narudžbama.<br><br>Mogu ti pomoći s:<br>· <code>narudžba 3 markiraj plaćeno</code><br>· <code>narudžba 3 markiraj otkazano</code><br>· <code>narudžba 3 bilješka tekst</code><br>· <code>sve narudžbe</code><br>· <code>neplačene narudžbe</code><br>· <code>statistika</code></div>
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input" type="text" id="chatInput" placeholder="Napiši naredbu..." autocomplete="off" />
+            <button class="chat-send" onclick="sendChat()">Pošalji</button>
+          </div>
+        </div>
+      </div>
+
       <!-- SETTINGS TAB -->
       <div class="tab-panel" id="tab-settings">
         <h1 class="page-title">Postavke</h1>
@@ -313,6 +372,35 @@
             </label>
           </div>
         </div>
+        <div class="card-title" style="margin-top:1.5rem">Podatci za plaćanje</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IBAN</label>
+            <input type="text" id="s_iban" placeholder="HR12 2340 0091 1234 5678 9" />
+          </div>
+          <div class="form-group">
+            <label>Ime primatelja (vlasnik)</label>
+            <input type="text" id="s_vlasnik" placeholder="Dino Marković" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Banka</label>
+            <input type="text" id="s_banka" placeholder="Erste Bank" />
+          </div>
+          <div class="form-group">
+            <label>PayPal link (paypal.me/...)</label>
+            <input type="text" id="s_paypal" placeholder="paypal.me/vaporshop" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>PayPal email (za IPN webhook)</label>
+            <input type="text" id="s_paypal_email" placeholder="dino@email.com" />
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:0.5rem" onclick="savePaymentSettings()">Spremi podatke za plaćanje</button>
+      </div>
       </div>
 
     </main>
@@ -516,7 +604,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
 
 // ===== LOAD ALL =====
 async function loadAll() {
-  await Promise.all([loadProducts(), loadPoll(), loadNovosti(), loadSettings()]);
+  await Promise.all([loadProducts(), loadPoll(), loadNovosti(), loadSettings(), loadOrders()]);
 }
 
 // ===== PRODUCTS =====
@@ -718,11 +806,152 @@ async function deleteNovost(id) {
   await loadNovosti();
 }
 
+// ===== ORDERS =====
+let orders = [];
+
+async function loadOrders() {
+  const r = await fetch('/api/admin/orders');
+  orders = await r.json();
+  renderOrders();
+  updatePendingBadge();
+}
+
+function updatePendingBadge() {
+  const pending = orders.filter(o => o.status === 'ceka_placanje').length;
+  const badge = document.getElementById('pendingBadge');
+  if (pending > 0) {
+    badge.textContent = pending;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderOrders() {
+  const filter = document.getElementById('ordersFilter')?.value || 'all';
+  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  document.getElementById('ordersCount').textContent = `(${filtered.length})`;
+  const container = document.getElementById('ordersList');
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🛒</div><div>Nema narudžbi</div></div>';
+    return;
+  }
+
+  const statusBadge = { ceka_placanje: 'badge-low', placeno: 'badge-available', otkazano: 'badge-out' };
+  const statusLabel = { ceka_placanje: '⏳ Čeka', placeno: '✅ Plaćeno', otkazano: '❌ Otkazano' };
+  const placLabel = { bank: '🏦 Bank', paypal: '💳 PayPal', uzivo: '🤝 Uživo' };
+
+  container.innerHTML = filtered.map(o => `
+    <div class="card" style="margin-bottom:1rem">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;flex-wrap:wrap">
+            <span style="font-family:var(--mono);font-weight:700;color:var(--accent)">${o.broj}</span>
+            <span class="badge ${statusBadge[o.status]}">${statusLabel[o.status]}</span>
+            <span class="badge badge-low" style="background:rgba(255,255,255,0.05);color:var(--text3)">${placLabel[o.placanje]||o.placanje}</span>
+            <span style="font-family:var(--mono);font-size:0.72rem;color:var(--text3)">${o.datum}</span>
+          </div>
+          <div style="font-weight:600;font-size:1rem;margin-bottom:0.25rem">${o.ime}</div>
+          <div style="font-size:0.85rem;color:var(--text2)">📞 ${o.tel}${o.email?' | 📧 '+o.email:''}</div>
+          ${o.napomena ? `<div style="font-size:0.82rem;color:var(--text3);margin-top:0.25rem">📝 ${o.napomena}</div>` : ''}
+          <div style="margin-top:0.75rem;display:flex;flex-direction:column;gap:0.2rem">
+            ${o.stavke.map(s=>`<div style="font-size:0.85rem;color:var(--text2)">· ${s.model} × ${s.kolicina} <span style="color:var(--accent)">€${(s.cijena*s.kolicina).toFixed(2)}</span></div>`).join('')}
+          </div>
+          <div style="margin-top:0.5rem;font-size:1rem;font-weight:700">Ukupno: <span style="color:var(--accent)">€${parseFloat(o.ukupno).toFixed(2)}</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;min-width:130px">
+          ${o.status !== 'placeno' ? `<button class="btn btn-primary btn-sm" onclick="markOrder(${o.id},'placeno')">✅ Markiraj plaćeno</button>` : ''}
+          ${o.status !== 'ceka_placanje' ? `<button class="btn btn-ghost btn-sm" onclick="markOrder(${o.id},'ceka_placanje')">⏳ Na čekanje</button>` : ''}
+          ${o.status !== 'otkazano' ? `<button class="btn btn-danger btn-sm" onclick="markOrder(${o.id},'otkazano')">❌ Otkaži</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="deleteOrder(${o.id})">🗑 Obriši</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function markOrder(id, status) {
+  await fetch(`/api/admin/orders/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) });
+  const labels = { placeno: '✅ Označeno kao plaćeno', otkazano: '❌ Narudžba otkazana', ceka_placanje: '⏳ Vraćeno na čekanje' };
+  toast(labels[status] || 'Ažurirano');
+  await loadOrders();
+}
+
+async function deleteOrder(id) {
+  if (!confirm('Obrisati ovu narudžbu?')) return;
+  await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
+  toast('Narudžba obrisana', 'error');
+  await loadOrders();
+}
+
+// ===== AI CHAT =====
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('chatInput');
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+});
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addChatMsg(msg, 'user');
+  input.value = '';
+
+  const thinking = addChatMsg('...', 'bot');
+  try {
+    const r = await fetch('/api/admin/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ poruka: msg })
+    });
+    const j = await r.json();
+    thinking.innerHTML = renderMarkdown(j.odgovor || '❌ Nema odgovora');
+    // Reload orders if a status change might have happened
+    if (/markir|otka|ceka|plac/i.test(msg)) await loadOrders();
+  } catch {
+    thinking.textContent = '❌ Greška pri komunikaciji.';
+  }
+  scrollChat();
+}
+
+function addChatMsg(text, type) {
+  const container = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className = `chat-msg ${type}`;
+  el.innerHTML = type === 'bot' ? renderMarkdown(text) : escapeHtml(text);
+  container.appendChild(el);
+  scrollChat();
+  return el;
+}
+
+function renderMarkdown(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function scrollChat() {
+  const c = document.getElementById('chatMessages');
+  if (c) c.scrollTop = c.scrollHeight;
+}
+
 // ===== SETTINGS =====
 async function loadSettings() {
   const r = await fetch('/api/admin/settings');
   settings = await r.json();
   document.getElementById('toggleAge').checked = !!settings.age_verification;
+  document.getElementById('s_iban').value = settings.iban || '';
+  document.getElementById('s_vlasnik').value = settings.vlasnik || '';
+  document.getElementById('s_banka').value = settings.banka || '';
+  document.getElementById('s_paypal').value = settings.paypal || '';
+  document.getElementById('s_paypal_email').value = settings.paypal_email || '';
 }
 
 async function saveSettings() {
@@ -732,6 +961,19 @@ async function saveSettings() {
     body: JSON.stringify(settings)
   });
   toast(settings.age_verification ? '18+ provjera uključena ✓' : '18+ provjera isključena');
+}
+
+async function savePaymentSettings() {
+  const patch = {
+    iban: document.getElementById('s_iban').value.trim(),
+    vlasnik: document.getElementById('s_vlasnik').value.trim(),
+    banka: document.getElementById('s_banka').value.trim(),
+    paypal: document.getElementById('s_paypal').value.trim(),
+    paypal_email: document.getElementById('s_paypal_email').value.trim()
+  };
+  await fetch('/api/admin/settings', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(patch) });
+  settings = { ...settings, ...patch };
+  toast('Podatci za plaćanje spremljeni ✓');
 }
 
 // ===== INIT =====

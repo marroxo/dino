@@ -864,32 +864,146 @@
       cursor: not-allowed;
     }
 
-    .success-msg {
-      text-align: center;
-      padding: 1.5rem;
-      background: rgba(0, 229, 160, 0.08);
+    /* ===== CHECKOUT STEPS ===== */
+    .checkout-step { display: none; }
+    .checkout-step.active { display: block; }
+
+    .checkout-step-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+      font-family: var(--mono);
+    }
+
+    .payment-methods { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .payment-option {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .payment-option:has(input:checked) {
+      border-color: var(--accent);
+      background: rgba(0, 229, 160, 0.06);
+    }
+
+    .payment-option input[type="radio"] { display: none; }
+
+    .pm-icon { font-size: 1.3rem; width: 28px; text-align: center; }
+
+    .pm-title { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+
+    .pm-desc { font-size: 0.72rem; color: var(--text3); margin-top: 0.1rem; }
+
+    .checkout-btns { display: flex; gap: 0.6rem; margin-top: 1rem; }
+
+    .checkout-btns .submit-btn { flex: 1; }
+
+    .back-btn {
+      padding: 0.85rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .back-btn:hover { color: var(--text); border-color: var(--text3); }
+
+    /* Payment detail cards */
+    .payment-detail-box {
+      background: rgba(0, 229, 160, 0.06);
       border: 1px solid rgba(0, 229, 160, 0.25);
       border-radius: var(--radius-sm);
-      display: none;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
     }
 
-    .success-msg.show { display: block; }
-
-    .success-msg .check {
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
+    .payment-detail-box .pd-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(0, 229, 160, 0.12);
+      font-size: 0.88rem;
     }
 
-    .success-msg h3 {
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-    }
+    .payment-detail-box .pd-row:last-child { border-bottom: none; }
 
-    .success-msg p {
+    .pd-label { color: var(--text3); font-size: 0.8rem; }
+
+    .pd-value { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+
+    .pd-amount { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+
+    .pd-iban {
+      font-family: var(--mono);
       font-size: 0.82rem;
-      color: var(--text2);
+      letter-spacing: 0.04em;
     }
+
+    .paypal-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: #003087;
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 0.75rem;
+      transition: background 0.2s;
+    }
+
+    .paypal-link-btn:hover { background: #002060; }
+
+    .order-confirm-icon { font-size: 2.5rem; text-align: center; margin-bottom: 0.75rem; }
+
+    .order-confirm-title { text-align: center; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+
+    .order-confirm-number {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--text2);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .new-order-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      transition: all var(--transition);
+    }
+
+    .new-order-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     /* ===== FOOTER ===== */
     footer {
@@ -1121,27 +1235,107 @@
       <span class="cart-total-label">Ukupno:</span>
       <span class="cart-total-amount" id="cartTotal">€0.00</span>
     </div>
-    <div class="success-msg" id="successMsg">
-      <div class="check">✅</div>
-      <h3>Rezervacija zaprimljena!</h3>
-      <p>Javit ćemo vam se uskoro putem telefona ili emaila.</p>
+
+    <!-- STEP 1: Contact info -->
+    <div class="checkout-step active" id="checkoutStep1">
+      <div class="checkout-step-title">// korak 1 — kontakt</div>
+      <div class="reservation-form">
+        <div>
+          <label class="form-label">Ime i prezime *</label>
+          <input class="form-input" type="text" id="inputName" placeholder="npr. Ivan Horvat" />
+        </div>
+        <div>
+          <label class="form-label">Telefon / WhatsApp *</label>
+          <input class="form-input" type="tel" id="inputPhone" placeholder="+385 91 234 5678" />
+        </div>
+        <div>
+          <label class="form-label">Email (opcionalno)</label>
+          <input class="form-input" type="email" id="inputEmail" placeholder="ivan@email.com" />
+        </div>
+        <div>
+          <label class="form-label">Napomena</label>
+          <input class="form-input" type="text" id="inputNote" placeholder="npr. nazovite popodne" />
+        </div>
+        <button class="submit-btn" onclick="goToStep2()">Odaberi plaćanje →</button>
+      </div>
     </div>
-    <form class="reservation-form" id="reservationForm">
-      <div>
-        <label class="form-label">Ime i prezime *</label>
-        <input class="form-input" type="text" id="inputName" placeholder="npr. Ivan Horvat" required />
+
+    <!-- STEP 2: Payment method -->
+    <div class="checkout-step" id="checkoutStep2">
+      <div class="checkout-step-title">// korak 2 — plaćanje</div>
+      <div class="payment-methods">
+        <label class="payment-option">
+          <input type="radio" name="payMethod" value="bank" checked />
+          <div class="pm-icon">🏦</div>
+          <div>
+            <div class="pm-title">Bankovni transfer</div>
+            <div class="pm-desc">IBAN uplata na račun</div>
+          </div>
+        </label>
+        <label class="payment-option">
+          <input type="radio" name="payMethod" value="paypal" />
+          <div class="pm-icon">💳</div>
+          <div>
+            <div class="pm-title">PayPal</div>
+            <div class="pm-desc">Sigurno online plaćanje</div>
+          </div>
+        </label>
+        <label class="payment-option">
+          <input type="radio" name="payMethod" value="uzivo" />
+          <div class="pm-icon">🤝</div>
+          <div>
+            <div class="pm-title">Plaćanje uživo</div>
+            <div class="pm-desc">Pri preuzimanju robe</div>
+          </div>
+        </label>
       </div>
-      <div>
-        <label class="form-label">Telefon / WhatsApp *</label>
-        <input class="form-input" type="tel" id="inputPhone" placeholder="npr. +385 91 234 5678" required />
+      <div class="checkout-btns">
+        <button class="back-btn" onclick="goToStep1()">← Natrag</button>
+        <button class="submit-btn" id="submitOrderBtn" onclick="submitOrder()">Potvrdi narudžbu</button>
       </div>
-      <div>
-        <label class="form-label">Email (opcionalno)</label>
-        <input class="form-input" type="email" id="inputEmail" placeholder="npr. ivan@email.com" />
+    </div>
+
+    <!-- STEP 3: Payment details -->
+    <div class="checkout-step" id="checkoutStep3">
+      <div id="payDetailBank" style="display:none">
+        <div class="order-confirm-icon">🏦</div>
+        <div class="order-confirm-title">Narudžba zaprimljena!</div>
+        <div class="order-confirm-number" id="bankOrderNum"></div>
+        <p style="font-size:0.82rem;color:var(--text2);text-align:center;margin-bottom:1rem">Pošalji uplatu na sljedeći račun:</p>
+        <div class="payment-detail-box">
+          <div class="pd-row"><span class="pd-label">IBAN</span><span class="pd-value pd-iban" id="bankIban"></span></div>
+          <div class="pd-row"><span class="pd-label">Primatelj</span><span class="pd-value" id="bankVlasnik"></span></div>
+          <div class="pd-row"><span class="pd-label">Banka</span><span class="pd-value" id="bankBanka"></span></div>
+          <div class="pd-row"><span class="pd-label">Iznos</span><span class="pd-value pd-amount" id="bankAmount"></span></div>
+          <div class="pd-row"><span class="pd-label">Opis</span><span class="pd-value pd-iban" id="bankOpis"></span></div>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text3);text-align:center">Narudžba će biti potvrđena čim primimo uplatu.</p>
       </div>
-      <p class="form-hint">* Obavezna polja. Kontaktirat ćemo vas u roku 24 sata.</p>
-      <button type="submit" class="submit-btn" id="submitBtn">Potvrdi rezervaciju</button>
-    </form>
+      <div id="payDetailPaypal" style="display:none">
+        <div class="order-confirm-icon">💳</div>
+        <div class="order-confirm-title">Narudžba zaprimljena!</div>
+        <div class="order-confirm-number" id="paypalOrderNum"></div>
+        <p style="font-size:0.82rem;color:var(--text2);text-align:center;margin-bottom:1rem">Završi plaćanje putem PayPala:</p>
+        <div class="payment-detail-box">
+          <div class="pd-row"><span class="pd-label">Iznos</span><span class="pd-value pd-amount" id="paypalAmount"></span></div>
+          <div class="pd-row"><span class="pd-label">Opis</span><span class="pd-value pd-iban" id="paypalOpis"></span></div>
+        </div>
+        <a id="paypalLinkBtn" class="paypal-link-btn" target="_blank" rel="noopener">
+          💳 Plati putem PayPala
+        </a>
+        <p style="font-size:0.72rem;color:var(--text3);text-align:center;margin-top:0.5rem">U opis plaćanja upiši broj narudžbe!</p>
+      </div>
+      <div id="payDetailUzivo" style="display:none">
+        <div class="order-confirm-icon">🤝</div>
+        <div class="order-confirm-title">Narudžba zaprimljena!</div>
+        <div class="order-confirm-number" id="uzivoOrderNum"></div>
+        <p style="font-size:0.9rem;color:var(--text2);text-align:center;margin-bottom:1rem">Kontaktirat ćemo te uskoro za dogovor preuzimanja i plaćanja.</p>
+        <div class="payment-detail-box">
+          <div class="pd-row"><span class="pd-label">Iznos za platiti</span><span class="pd-value pd-amount" id="uzivoAmount"></span></div>
+        </div>
+      </div>
+      <button class="new-order-btn" onclick="resetCheckout()">Nova narudžba →</button>
+    </div>
   </div>
 </div>
 
@@ -1275,28 +1469,98 @@ document.getElementById('cartBtn').addEventListener('click', openCart);
 document.getElementById('closeCart').addEventListener('click', closeCart);
 document.getElementById('overlay').addEventListener('click', closeCart);
 
-// ===== RESERVATION FORM =====
-document.getElementById('reservationForm').addEventListener('submit', function(e) {
-  e.preventDefault();
+// ===== CHECKOUT MULTI-STEP =====
+let shopSettings = {};
+
+function goToStep2() {
   const name = document.getElementById('inputName').value.trim();
   const phone = document.getElementById('inputPhone').value.trim();
-  if (!name || !phone) return;
+  if (!name) { alert('Unesite ime i prezime!'); return; }
+  if (!phone) { alert('Unesite broj telefona!'); return; }
+  document.getElementById('checkoutStep1').classList.remove('active');
+  document.getElementById('checkoutStep2').classList.add('active');
+}
 
-  const btn = document.getElementById('submitBtn');
+function goToStep1() {
+  document.getElementById('checkoutStep2').classList.remove('active');
+  document.getElementById('checkoutStep1').classList.add('active');
+}
+
+async function submitOrder() {
+  const btn = document.getElementById('submitOrderBtn');
   btn.disabled = true;
   btn.textContent = 'Šalje se...';
 
-  // Simulate API call — swap with real POST in production:
-  // fetch('/api/rezervacija', { method: 'POST', headers: {'Content-Type':'application/json'},
-  //   body: JSON.stringify({ name, phone, email: inputEmail.value, cart }) })
+  const payMethod = document.querySelector('input[name="payMethod"]:checked').value;
+  const stavke = cart.map(i => ({
+    id: i.id, model: i.model, name: i.name, cijena: i.price, kolicina: i.qty || 1
+  }));
+  const ukupno = stavke.reduce((s, i) => s + i.cijena * i.kolicina, 0);
 
-  setTimeout(() => {
-    document.getElementById('reservationForm').style.display = 'none';
-    document.getElementById('successMsg').classList.add('show');
+  try {
+    const r = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ime: document.getElementById('inputName').value.trim(),
+        email: document.getElementById('inputEmail').value.trim(),
+        tel: document.getElementById('inputPhone').value.trim(),
+        napomena: document.getElementById('inputNote').value.trim(),
+        stavke, ukupno, placanje: payMethod
+      })
+    });
+    const result = await r.json();
+    if (!result.ok) throw new Error('Server error');
+
+    showPaymentDetails(result, payMethod, ukupno);
     cart = [];
     updateCartUI();
-  }, 800);
-});
+  } catch(e) {
+    alert('Greška pri slanju narudžbe. Pokušaj ponovo.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Potvrdi narudžbu';
+  }
+}
+
+function showPaymentDetails(result, payMethod, ukupno) {
+  document.getElementById('checkoutStep2').classList.remove('active');
+  document.getElementById('checkoutStep3').classList.add('active');
+  const amtStr = `€${parseFloat(ukupno).toFixed(2)}`;
+  const opis = result.broj;
+
+  document.querySelectorAll('#payDetailBank,#payDetailPaypal,#payDetailUzivo').forEach(el => el.style.display = 'none');
+
+  if (payMethod === 'bank') {
+    document.getElementById('payDetailBank').style.display = 'block';
+    document.getElementById('bankOrderNum').textContent = result.broj;
+    document.getElementById('bankIban').textContent = shopSettings.iban || 'nije postavljen';
+    document.getElementById('bankVlasnik').textContent = shopSettings.vlasnik || '';
+    document.getElementById('bankBanka').textContent = shopSettings.banka || '';
+    document.getElementById('bankAmount').textContent = amtStr;
+    document.getElementById('bankOpis').textContent = opis;
+  } else if (payMethod === 'paypal') {
+    document.getElementById('payDetailPaypal').style.display = 'block';
+    document.getElementById('paypalOrderNum').textContent = result.broj;
+    document.getElementById('paypalAmount').textContent = amtStr;
+    document.getElementById('paypalOpis').textContent = opis;
+    const ppLink = (shopSettings.paypal || 'paypal.me/vaporshop') + '/' + parseFloat(ukupno).toFixed(2);
+    document.getElementById('paypalLinkBtn').href = 'https://' + ppLink.replace(/^https?:\/\//,'');
+  } else {
+    document.getElementById('payDetailUzivo').style.display = 'block';
+    document.getElementById('uzivoOrderNum').textContent = result.broj;
+    document.getElementById('uzivoAmount').textContent = amtStr;
+  }
+}
+
+function resetCheckout() {
+  document.getElementById('checkoutStep3').classList.remove('active');
+  document.getElementById('checkoutStep1').classList.add('active');
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputPhone').value = '';
+  document.getElementById('inputEmail').value = '';
+  document.getElementById('inputNote').value = '';
+}
 
 // ===== POLL (loaded from API) =====
 let pollData = [];
@@ -1438,11 +1702,11 @@ async function init() {
     ]);
     products = await productsRes.json();
     pollData = await pollRes.json();
-    const settings = await settingsRes.json();
+    shopSettings = await settingsRes.json();
     const novosti = await novostiRes.json();
 
     // Age verification
-    if (settings.age_verification && !sessionStorage.getItem('age_ok')) {
+    if (shopSettings.age_verification && !sessionStorage.getItem('age_ok')) {
       document.getElementById('ageModal').classList.remove('hidden');
     }
 
