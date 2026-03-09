@@ -74,7 +74,7 @@ fi
 # ─── npm install ───
 step "Instalacija node paketa"
 cd "$APP_DIR"
-npm ci --omit=dev
+npm install --omit=dev
 info "Paketi instalirani."
 
 # ─── Firewall ───
