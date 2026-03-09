@@ -1,0 +1,31 @@
+{
+  "products": [
+    { "id": 1, "model": "Crystal Pro", "name": "Crystal Pro — Jagoda & Krem", "flavors": ["Jagoda", "Krem"], "price": 8.99, "stock": "available", "colorIdx": 0 },
+    { "id": 2, "model": "ELF BAR BC5000", "name": "ELF BAR BC5000 — Mango Ice", "flavors": ["Mango Ice"], "price": 12.99, "stock": "available", "colorIdx": 1 },
+    { "id": 3, "model": "Lost Mary BM5000", "name": "Lost Mary BM5000 — Mixed Berry + Ice", "flavors": ["Mixed Berry", "Ice"], "price": 11.99, "stock": "low", "colorIdx": 2 },
+    { "id": 4, "model": "IGET Bar Plus", "name": "IGET Bar Plus — Blueberry Raspberry", "flavors": ["Blueberry Razz"], "price": 9.99, "stock": "available", "colorIdx": 3 },
+    { "id": 5, "model": "HQD Cuvie Plus", "name": "HQD Cuvie Plus — Watermelon + Lemon", "flavors": ["Watermelon", "Lemon Mint"], "price": 7.99, "stock": "low", "colorIdx": 4 },
+    { "id": 6, "model": "SKE Crystal Bar", "name": "SKE Crystal Bar — Grape Ice", "flavors": ["Grape Ice"], "price": 6.99, "stock": "out", "colorIdx": 5 },
+    { "id": 7, "model": "Crystal Pro Max", "name": "Crystal Pro Max — Peach Ice", "flavors": ["Peach Ice"], "price": 13.49, "stock": "available", "colorIdx": 0 },
+    { "id": 8, "model": "ELF BAR BC5000", "name": "ELF BAR BC5000 — Cola Ice + Banana", "flavors": ["Cola Ice", "Banana Ice"], "price": 12.99, "stock": "available", "colorIdx": 1 }
+  ],
+  "pollData": [
+    { "emoji": "🍓", "name": "Jagoda (Strawberry)", "votes": 47 },
+    { "emoji": "🥭", "name": "Mango Ice", "votes": 38 },
+    { "emoji": "🫐", "name": "Blueberry Raspberry", "votes": 31 },
+    { "emoji": "🍉", "name": "Watermelon", "votes": 28 },
+    { "emoji": "🍇", "name": "Grape Ice", "votes": 24 },
+    { "emoji": "🍋", "name": "Lemon Mint", "votes": 19 },
+    { "emoji": "🍑", "name": "Peach Ice", "votes": 16 },
+    { "emoji": "🥤", "name": "Cola Ice", "votes": 13 },
+    { "emoji": "🍫", "name": "Mixed Berry", "votes": 11 },
+    { "emoji": "🍌", "name": "Banana Ice", "votes": 8 }
+  ],
+  "settings": {
+    "age_verification": true
+  },
+  "ads": [
+    { "id": 1, "title": "🔥 Posebna ponuda!", "text": "Kupi 2 Crystal Pro, treći gratis! Vrijedi ovaj tjedan.", "active": true },
+    { "id": 2, "title": "🚚 Besplatna dostava", "text": "Za narudžbe iznad €25 dostava je besplatna u cijeloj Hrvatskoj.", "active": true }
+  ]
+}
