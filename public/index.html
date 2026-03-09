@@ -956,6 +956,41 @@
       nav { padding: 0 1rem; }
       section { padding: 4rem 1rem; }
     }
+
+    /* ===== 18+ MODAL ===== */
+    #ageModal {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(11,12,14,0.97);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; text-align: center; padding: 2rem;
+    }
+    #ageModal.hidden { display: none; }
+    .age-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2.5rem; max-width: 440px; width: 100%;
+    }
+    .age-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .age-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .age-sub { color: var(--text2); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+    .age-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .age-yes {
+      background: var(--accent); color: #0b0c0e; border: none;
+      padding: 0.85rem 2rem; border-radius: var(--radius-sm);
+      font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .age-yes:hover { background: var(--accent2); }
+    .age-no {
+      background: transparent; color: var(--text3); border: 1px solid var(--border);
+      padding: 0.85rem 2rem; border-radius: var(--radius-sm);
+      font-family: var(--font); font-size: 1rem; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .age-no:hover { border-color: var(--danger); color: var(--danger); }
+    .age-deny {
+      background: var(--bg2); text-align: center; padding: 2rem; border-radius: var(--radius);
+      color: var(--text3); font-size: 0.9rem; display: none;
+    }
   </style>
 </head>
 <body>
@@ -1005,28 +1040,7 @@
       <span class="section-tag">// novosti</span>
       <h2 class="section-title">Što je <em>novo</em>?</h2>
     </div>
-    <div class="news-grid">
-      <div class="news-card fade-up">
-        <span class="badge badge-restock">RESTOCK</span>
-        <p class="news-text">Crystal Pro — okus Jagoda ponovno dostupan! Ne propusti, zalihe su ograničene.</p>
-        <span class="news-date">09.03.2026</span>
-      </div>
-      <div class="news-card fade-up">
-        <span class="badge badge-novo">NOVO</span>
-        <p class="news-text">Stigao novi ELF BAR BC5000 u 6 novih okusa — uključujući ekskluzivni Lemon Mint.</p>
-        <span class="news-date">07.03.2026</span>
-      </div>
-      <div class="news-card fade-up">
-        <span class="badge badge-promo">PROMO</span>
-        <p class="news-text">Akcija na sve Crystal modele — 15% popusta do kraja tjedna. Iskoristi odmah!</p>
-        <span class="news-date">05.03.2026</span>
-      </div>
-      <div class="news-card fade-up">
-        <span class="badge badge-restock">RESTOCK</span>
-        <p class="news-text">Lost Mary BM5000 Mango Ice — opet na stanju! Jedan od najprodavanijih okusa.</p>
-        <span class="news-date">03.03.2026</span>
-      </div>
-    </div>
+    <div class="news-grid" id="novostiGrid"></div>
   </div>
 </section>
 
@@ -1063,6 +1077,24 @@
   <div class="footer-logo">VAPOR</div>
   <p class="footer-copy">© 2026 Vapor Shop. Sva prava pridržana. Samo za punoljetne osobe.</p>
 </footer>
+
+<!-- AGE VERIFICATION MODAL -->
+<div id="ageModal" class="hidden">
+  <div class="age-box" id="ageBox">
+    <div class="age-icon">🔞</div>
+    <div class="age-title">Potvrda punoljetnosti</div>
+    <div class="age-sub">Ovaj sadržaj namijenjen je isključivo osobama starijim od 18 godina.<br/>Molimo potvrdite da imate 18 ili više godina.</div>
+    <div class="age-btns">
+      <button class="age-yes" onclick="confirmAge()">Da, imam 18+ godina</button>
+      <button class="age-no" onclick="denyAge()">Nemam 18 godina</button>
+    </div>
+  </div>
+  <div class="age-deny" id="ageDeny">
+    <div style="font-size:2rem;margin-bottom:0.75rem">🚫</div>
+    <div style="font-weight:600;color:var(--danger);margin-bottom:0.5rem">Pristup odbijen</div>
+    <div>Žao nam je, ovaj sadržaj dostupan je samo punoljetnim osobama.</div>
+  </div>
+</div>
 
 <!-- OVERLAY -->
 <div class="overlay" id="overlay"></div>
@@ -1130,81 +1162,8 @@ const vapeSVG = (color = '#00e5a0') => `
 
 const vapeColors = ['#00e5a0', '#5b8cff', '#ff6b9d', '#ffd166', '#a78bfa', '#34d399'];
 
-// ===== PRODUCTS DATA =====
-const products = [
-  {
-    id: 1,
-    model: 'Crystal Pro',
-    name: 'Crystal Pro — Jagoda & Krem',
-    flavors: ['Jagoda', 'Krem'],
-    price: 8.99,
-    stock: 'available',
-    colorIdx: 0
-  },
-  {
-    id: 2,
-    model: 'ELF BAR BC5000',
-    name: 'ELF BAR BC5000 — Mango Ice',
-    flavors: ['Mango Ice'],
-    price: 12.99,
-    stock: 'available',
-    colorIdx: 1
-  },
-  {
-    id: 3,
-    model: 'Lost Mary BM5000',
-    name: 'Lost Mary BM5000 — Mixed Berry + Ice',
-    flavors: ['Mixed Berry', 'Ice'],
-    price: 11.99,
-    stock: 'low',
-    colorIdx: 2
-  },
-  {
-    id: 4,
-    model: 'IGET Bar Plus',
-    name: 'IGET Bar Plus — Blueberry Raspberry',
-    flavors: ['Blueberry Razz'],
-    price: 9.99,
-    stock: 'available',
-    colorIdx: 3
-  },
-  {
-    id: 5,
-    model: 'HQD Cuvie Plus',
-    name: 'HQD Cuvie Plus — Watermelon + Lemon',
-    flavors: ['Watermelon', 'Lemon Mint'],
-    price: 7.99,
-    stock: 'low',
-    colorIdx: 4
-  },
-  {
-    id: 6,
-    model: 'SKE Crystal Bar',
-    name: 'SKE Crystal Bar — Grape Ice',
-    flavors: ['Grape Ice'],
-    price: 6.99,
-    stock: 'out',
-    colorIdx: 5
-  },
-  {
-    id: 7,
-    model: 'Crystal Pro Max',
-    name: 'Crystal Pro Max — Peach Ice',
-    flavors: ['Peach Ice'],
-    price: 13.49,
-    stock: 'available',
-    colorIdx: 0
-  },
-  {
-    id: 8,
-    model: 'ELF BAR BC5000',
-    name: 'ELF BAR BC5000 — Cola Ice + Banana',
-    flavors: ['Cola Ice', 'Banana Ice'],
-    price: 12.99,
-    stock: 'available',
-    colorIdx: 1
-  },
-];
+// ===== PRODUCTS DATA (loaded from API) =====
+let products = [];
 
 const stockLabels = {
   available: 'Dostupno',
@@ -1339,24 +1298,13 @@ document.getElementById('reservationForm').addEventListener('submit', function(e
   }, 800);
 });
 
-// ===== POLL =====
-const pollData = [
-  { emoji: '🍓', name: 'Jagoda (Strawberry)', votes: 47 },
-  { emoji: '🥭', name: 'Mango Ice', votes: 38 },
-  { emoji: '🫐', name: 'Blueberry Raspberry', votes: 31 },
-  { emoji: '🍉', name: 'Watermelon', votes: 28 },
-  { emoji: '🍇', name: 'Grape Ice', votes: 24 },
-  { emoji: '🍋', name: 'Lemon Mint', votes: 19 },
-  { emoji: '🍑', name: 'Peach Ice', votes: 16 },
-  { emoji: '🥤', name: 'Cola Ice', votes: 13 },
-  { emoji: '🍫', name: 'Mixed Berry', votes: 11 },
-  { emoji: '🍌', name: 'Banana Ice', votes: 8 },
-];
+// ===== POLL (loaded from API) =====
+let pollData = [];
 
 const POLL_KEY = 'vapor_poll_v1';
 let pollState = { votes: {}, myVote: null, revealed: false };
 
-function loadPoll() {
+function loadPollState() {
   try {
     const saved = localStorage.getItem(POLL_KEY);
     if (saved) pollState = JSON.parse(saved);
@@ -1453,24 +1401,75 @@ function observeFade() {
   els.forEach(el => io.observe(el));
 }
 
-// ===== INIT =====
-renderProducts();
-loadPoll();
-renderPoll();
-observeFade();
-// Auto-reveal if already voted
-if (pollState.revealed) {
-  setTimeout(() => {
-    document.querySelectorAll('.poll-item').forEach((el, i) => {
-      el.classList.add('poll-revealed');
-      const total = getTotalVotes();
-      const votes = getVotesFor(i);
-      const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
-      const bar = document.getElementById(`pollBar${i}`);
-      if (bar) bar.style.width = pct + '%';
-    });
-  }, 300);
+// ===== AGE VERIFICATION =====
+function confirmAge() {
+  sessionStorage.setItem('age_ok', '1');
+  document.getElementById('ageModal').classList.add('hidden');
 }
+function denyAge() {
+  document.getElementById('ageBox').style.display = 'none';
+  document.getElementById('ageDeny').style.display = 'block';
+}
+
+// ===== RENDER NOVOSTI =====
+function renderNovosti(novosti) {
+  const grid = document.getElementById('novostiGrid');
+  if (!novosti || !novosti.length) {
+    grid.innerHTML = '<div style="color:var(--text3);text-align:center;padding:2rem">Nema novosti.</div>';
+    return;
+  }
+  grid.innerHTML = novosti.map(n => `
+    <div class="news-card fade-up">
+      <span class="badge badge-${n.badge}">${n.badge.toUpperCase()}</span>
+      <p class="news-text">${n.tekst}</p>
+      <span class="news-date">${n.datum}</span>
+    </div>
+  `).join('');
+}
+
+// ===== INIT =====
+async function init() {
+  try {
+    const [productsRes, pollRes, settingsRes, novostiRes] = await Promise.all([
+      fetch('/api/products'),
+      fetch('/api/poll'),
+      fetch('/api/settings'),
+      fetch('/api/novosti')
+    ]);
+    products = await productsRes.json();
+    pollData = await pollRes.json();
+    const settings = await settingsRes.json();
+    const novosti = await novostiRes.json();
+
+    // Age verification
+    if (settings.age_verification && !sessionStorage.getItem('age_ok')) {
+      document.getElementById('ageModal').classList.remove('hidden');
+    }
+
+    renderNovosti(novosti);
+    renderProducts();
+    loadPollState();
+    renderPoll();
+    observeFade();
+
+    if (pollState.revealed) {
+      setTimeout(() => {
+        document.querySelectorAll('.poll-item').forEach((el, i) => {
+          el.classList.add('poll-revealed');
+          const total = getTotalVotes();
+          const votes = getVotesFor(i);
+          const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+          const bar = document.getElementById(`pollBar${i}`);
+          if (bar) bar.style.width = pct + '%';
+        });
+      }, 300);
+    }
+  } catch(e) {
+    console.error('Init error:', e);
+  }
+}
+
+init();
 </script>
 </body>
 </html>
