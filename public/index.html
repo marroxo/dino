@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VAPOR — Premium Vape Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0c0e;
+      --bg2: #111318;
+      --bg3: #181b22;
+      --surface: #1a1d26;
+      --surface2: #21252f;
+      --border: #2a2e3d;
+      --accent: #00e5a0;
+      --accent2: #00c987;
+      --accent-glow: rgba(0, 229, 160, 0.18);
+      --text: #e8ecf0;
+      --text2: #9aa3b4;
+      --text3: #5d6577;
+      --danger: #ff5566;
+      --warn: #ff9944;
+      --font: 'Outfit', sans-serif;
+      --mono: 'Space Mono', monospace;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Grain texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.6;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 68px;
+      background: rgba(11, 12, 14, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+    }
+
+    nav.scrolled {
+      background: rgba(11, 12, 14, 0.97);
+      box-shadow: 0 4px 40px rgba(0,0,0,0.4);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--text2); font-size: 0.7em; }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      transition: color var(--transition);
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .cart-btn {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all var(--transition);
+    }
+
+    .cart-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--accent);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      display: none;
+    }
+
+    .cart-badge.visible { display: flex; }
+
+    .burger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .burger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--text2);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    /* ===== HERO ===== */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 6rem 2rem 4rem;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 229, 160, 0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+    .hero-tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      border: 1px solid rgba(0, 229, 160, 0.3);
+      padding: 0.35rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+      background: rgba(0, 229, 160, 0.06);
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #a0f5d8 40%, var(--accent) 70%, #00a876 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--text2);
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+      font-weight: 300;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.85rem 2rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: all var(--transition);
+      letter-spacing: 0.02em;
+    }
+
+    .hero-cta:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 229, 160, 0.35);
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text3);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      font-family: var(--mono);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--accent));
+      animation: scrollLine 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollLine {
+      0%, 100% { opacity: 0.3; transform: scaleY(0.8); }
+      50% { opacity: 1; transform: scaleY(1); }
+    }
+
+    /* ===== SECTIONS ===== */
+    section { padding: 6rem 2rem; }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .section-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--accent), #00a876);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* ===== NEWS ===== */
+    #novosti { background: var(--bg2); }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .news-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .news-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .news-card:hover {
+      border-color: rgba(0, 229, 160, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .news-card:hover::before { opacity: 1; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+      font-family: var(--mono);
+    }
+
+    .badge-restock { background: rgba(0, 229, 160, 0.15); color: var(--accent); border: 1px solid rgba(0, 229, 160, 0.3); }
+    .badge-novo { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .badge-promo { background: rgba(255, 153, 68, 0.15); color: var(--warn); border: 1px solid rgba(255, 153, 68, 0.3); }
+
+    .news-text {
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .news-date {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+    }
+
+    /* ===== SHOP ===== */
+    #shop { background: var(--bg); }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-card:hover {
+      border-color: rgba(0, 229, 160, 0.25);
+      transform: translateY(-6px);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+    }
+
+    .product-visual {
+      height: 200px;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-visual svg {
+      width: 80px;
+      height: 80px;
+      filter: drop-shadow(0 0 20px rgba(0, 229, 160, 0.4));
+      transition: transform 0.4s ease;
+    }
+
+    .product-card:hover .product-visual svg {
+      transform: scale(1.1) rotate(2deg);
+    }
+
+    .product-visual-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 70%, rgba(0, 229, 160, 0.08) 0%, transparent 65%);
+    }
+
+    .product-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .product-model {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .product-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .flavor-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .flavor-tag {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.55rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    .product-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+
+    .product-price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .product-price sup {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text2);
+      vertical-align: super;
+    }
+
+    .stock-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      color: var(--text3);
+    }
+
+    .stock-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .stock-available .stock-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .stock-low .stock-dot { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+    .stock-out .stock-dot { background: var(--text3); }
+
+    .add-btn {
+      width: 100%;
+      margin-top: 0.75rem;
+      padding: 0.7rem;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      letter-spacing: 0.04em;
+    }
+
+    .add-btn:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 8px 24px rgba(0, 229, 160, 0.3);
+    }
+
+    .add-btn:disabled {
+      border-color: var(--text3);
+      color: var(--text3);
+      cursor: not-allowed;
+    }
+
+    .add-btn:disabled:hover {
+      background: transparent;
+      color: var(--text3);
+      box-shadow: none;
+    }
+
+    /* ===== POLL ===== */
+    #anketa { background: var(--bg2); }
+
+    .poll-container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    .poll-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .poll-total { color: var(--accent); }
+
+    .poll-items { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .poll-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .poll-item:hover {
+      border-color: rgba(0, 229, 160, 0.3);
+    }
+
+    .poll-item.voted {
+      border-color: rgba(0, 229, 160, 0.4);
+    }
+
+    .poll-bar {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: rgba(0, 229, 160, 0.08);
+      border-radius: var(--radius-sm);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0;
+    }
+
+    .poll-item-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .poll-emoji { font-size: 1.3rem; }
+
+    .poll-name {
+      flex: 1;
+      font-weight: 500;
+      font-size: 0.92rem;
+    }
+
+    .poll-pct {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 38px;
+      text-align: right;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .poll-votes-count {
+      font-size: 0.7rem;
+      color: var(--text3);
+      min-width: 40px;
+      text-align: right;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .poll-revealed .poll-bar { /* bar widths set via JS */ }
+    .poll-revealed .poll-pct { opacity: 1; }
+    .poll-revealed .poll-votes-count { opacity: 1; }
+
+    .poll-my-vote {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      flex-shrink: 0;
+      opacity: 0;
+    }
+
+    .poll-item.my-pick .poll-my-vote { opacity: 1; }
+
+    /* ===== CART DRAWER ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
+    }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 420px;
+      max-width: 95vw;
+      background: var(--bg2);
+      border-left: 1px solid var(--border);
+      z-index: 1200;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-drawer.open { transform: translateX(0); }
+
+    .cart-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cart-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all var(--transition);
+    }
+
+    .close-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    .cart-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+    }
+
+    .cart-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text3);
+    }
+
+    .cart-empty svg { opacity: 0.3; margin-bottom: 1rem; }
+
+    .cart-empty p { font-size: 0.9rem; }
+
+    .cart-items { display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .cart-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+    }
+
+    .cart-item-icon {
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      background: var(--bg3);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .cart-item-info { flex: 1; }
+
+    .cart-item-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .cart-item-flavor {
+      font-size: 0.75rem;
+      color: var(--text3);
+    }
+
+    .cart-item-price {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px;
+      transition: color var(--transition);
+      line-height: 1;
+    }
+
+    .remove-btn:hover { color: var(--danger); }
+
+    .cart-footer {
+      padding: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      font-size: 1rem;
+    }
+
+    .cart-total-label { color: var(--text2); }
+
+    .cart-total-amount {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .reservation-form { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .form-label {
+      font-size: 0.75rem;
+      color: var(--text3);
+      margin-bottom: 0.25rem;
+      display: block;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 0.9rem;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      transition: border-color var(--transition);
+      outline: none;
+    }
+
+    .form-input::placeholder { color: var(--text3); }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 229, 160, 0.1);
+    }
+
+    .form-hint { font-size: 0.72rem; color: var(--text3); margin-top: 0.2rem; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      letter-spacing: 0.03em;
+      margin-top: 0.25rem;
+    }
+
+    .submit-btn:hover {
+      background: var(--accent2);
+      box-shadow: 0 8px 24px rgba(0, 229, 160, 0.35);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .success-msg {
+      text-align: center;
+      padding: 1.5rem;
+      background: rgba(0, 229, 160, 0.08);
+      border: 1px solid rgba(0, 229, 160, 0.25);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+
+    .success-msg.show { display: block; }
+
+    .success-msg .check {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .success-msg h3 {
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .success-msg p {
+      font-size: 0.82rem;
+      color: var(--text2);
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--bg3);
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 1.2rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      color: var(--text3);
+    }
+
+    /* ===== ANIMATIONS ===== */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-up:nth-child(2) { transition-delay: 0.1s; }
+    .fade-up:nth-child(3) { transition-delay: 0.2s; }
+    .fade-up:nth-child(4) { transition-delay: 0.3s; }
+    .fade-up:nth-child(5) { transition-delay: 0.4s; }
+    .fade-up:nth-child(6) { transition-delay: 0.5s; }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 900px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 680px) {
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 68px; left: 0; right: 0;
+        background: var(--bg2);
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem 2rem;
+        gap: 1.25rem;
+      }
+      .burger { display: flex; }
+      .products-grid { grid-template-columns: 1fr; }
+      .poll-container { padding: 1.25rem; }
+    }
+
+    @media (max-width: 400px) {
+      nav { padding: 0 1rem; }
+      section { padding: 4rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">VAPOR<span> ™</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#novosti">Novosti</a></li>
+    <li><a href="#shop">Shop</a></li>
+    <li><a href="#anketa">Anketa</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="cart-btn" id="cartBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Košarica
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+    <div class="burger" id="burger">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-tag">✦ Premium Vape Experience</div>
+    <h1 class="hero-title">Osjeti razliku.<br />Pravi okus.</h1>
+    <p class="hero-subtitle">Odabrani vape uređaji i tekućine vrhunske kvalitete. Brza isporuka, povoljne cijene, pouzdana usluga.</p>
+    <a href="#shop" class="hero-cta">
+      Pregledaj ponudu
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    scroll
+  </div>
+</section>
+
+<!-- NOVOSTI -->
+<section id="novosti">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">// novosti</span>
+      <h2 class="section-title">Što je <em>novo</em>?</h2>
+    </div>
+    <div class="news-grid">
+      <div class="news-card fade-up">
+        <span class="badge badge-restock">RESTOCK</span>
+        <p class="news-text">Crystal Pro — okus Jagoda ponovno dostupan! Ne propusti, zalihe su ograničene.</p>
+        <span class="news-date">09.03.2026</span>
+      </div>
+      <div class="news-card fade-up">
+        <span class="badge badge-novo">NOVO</span>
+        <p class="news-text">Stigao novi ELF BAR BC5000 u 6 novih okusa — uključujući ekskluzivni Lemon Mint.</p>
+        <span class="news-date">07.03.2026</span>
+      </div>
+      <div class="news-card fade-up">
+        <span class="badge badge-promo">PROMO</span>
+        <p class="news-text">Akcija na sve Crystal modele — 15% popusta do kraja tjedna. Iskoristi odmah!</p>
+        <span class="news-date">05.03.2026</span>
+      </div>
+      <div class="news-card fade-up">
+        <span class="badge badge-restock">RESTOCK</span>
+        <p class="news-text">Lost Mary BM5000 Mango Ice — opet na stanju! Jedan od najprodavanijih okusa.</p>
+        <span class="news-date">03.03.2026</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">// ponuda</span>
+      <h2 class="section-title">Naši <em>proizvodi</em></h2>
+    </div>
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+</section>
+
+<!-- ANKETA -->
+<section id="anketa">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">// glasanje</span>
+      <h2 class="section-title">Koji okus <em>sljedeći</em>?</h2>
+    </div>
+    <div class="poll-container">
+      <div class="poll-meta">
+        <span>Klikni na okus da glasaš</span>
+        <span class="poll-total" id="pollTotal">0 glasova</span>
+      </div>
+      <div class="poll-items" id="pollItems"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">VAPOR</div>
+  <p class="footer-copy">© 2026 Vapor Shop. Sva prava pridržana. Samo za punoljetne osobe.</p>
+</footer>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+
+<!-- CART DRAWER -->
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h2>Košarica</h2>
+    <button class="close-btn" id="closeCart">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty" id="cartEmpty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <p>Košarica je prazna.<br/>Dodaj neki proizvod!</p>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total">
+      <span class="cart-total-label">Ukupno:</span>
+      <span class="cart-total-amount" id="cartTotal">€0.00</span>
+    </div>
+    <div class="success-msg" id="successMsg">
+      <div class="check">✅</div>
+      <h3>Rezervacija zaprimljena!</h3>
+      <p>Javit ćemo vam se uskoro putem telefona ili emaila.</p>
+    </div>
+    <form class="reservation-form" id="reservationForm">
+      <div>
+        <label class="form-label">Ime i prezime *</label>
+        <input class="form-input" type="text" id="inputName" placeholder="npr. Ivan Horvat" required />
+      </div>
+      <div>
+        <label class="form-label">Telefon / WhatsApp *</label>
+        <input class="form-input" type="tel" id="inputPhone" placeholder="npr. +385 91 234 5678" required />
+      </div>
+      <div>
+        <label class="form-label">Email (opcionalno)</label>
+        <input class="form-input" type="email" id="inputEmail" placeholder="npr. ivan@email.com" />
+      </div>
+      <p class="form-hint">* Obavezna polja. Kontaktirat ćemo vas u roku 24 sata.</p>
+      <button type="submit" class="submit-btn" id="submitBtn">Potvrdi rezervaciju</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// ===== VAPE SVG =====
+const vapeSVG = (color = '#00e5a0') => `
+<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="30" y="10" width="20" height="55" rx="6" fill="${color}1a" stroke="${color}" stroke-width="1.5"/>
+  <rect x="33" y="13" width="14" height="8" rx="3" fill="${color}33"/>
+  <rect x="33" y="24" width="14" height="2" rx="1" fill="${color}55"/>
+  <rect x="33" y="29" width="14" height="2" rx="1" fill="${color}33"/>
+  <rect x="33" y="34" width="14" height="2" rx="1" fill="${color}22"/>
+  <rect x="34" y="50" width="12" height="10" rx="3" fill="${color}22"/>
+  <circle cx="40" cy="55" r="3" fill="${color}44"/>
+  <circle cx="40" cy="55" r="1.5" fill="${color}"/>
+  <rect x="36" y="63" width="8" height="5" rx="2" fill="${color}33" stroke="${color}44" stroke-width="1"/>
+</svg>`;
+
+const vapeColors = ['#00e5a0', '#5b8cff', '#ff6b9d', '#ffd166', '#a78bfa', '#34d399'];
+
+// ===== PRODUCTS DATA =====
+const products = [
+  {
+    id: 1,
+    model: 'Crystal Pro',
+    name: 'Crystal Pro — Jagoda & Krem',
+    flavors: ['Jagoda', 'Krem'],
+    price: 8.99,
+    stock: 'available',
+    colorIdx: 0
+  },
+  {
+    id: 2,
+    model: 'ELF BAR BC5000',
+    name: 'ELF BAR BC5000 — Mango Ice',
+    flavors: ['Mango Ice'],
+    price: 12.99,
+    stock: 'available',
+    colorIdx: 1
+  },
+  {
+    id: 3,
+    model: 'Lost Mary BM5000',
+    name: 'Lost Mary BM5000 — Mixed Berry + Ice',
+    flavors: ['Mixed Berry', 'Ice'],
+    price: 11.99,
+    stock: 'low',
+    colorIdx: 2
+  },
+  {
+    id: 4,
+    model: 'IGET Bar Plus',
+    name: 'IGET Bar Plus — Blueberry Raspberry',
+    flavors: ['Blueberry Razz'],
+    price: 9.99,
+    stock: 'available',
+    colorIdx: 3
+  },
+  {
+    id: 5,
+    model: 'HQD Cuvie Plus',
+    name: 'HQD Cuvie Plus — Watermelon + Lemon',
+    flavors: ['Watermelon', 'Lemon Mint'],
+    price: 7.99,
+    stock: 'low',
+    colorIdx: 4
+  },
+  {
+    id: 6,
+    model: 'SKE Crystal Bar',
+    name: 'SKE Crystal Bar — Grape Ice',
+    flavors: ['Grape Ice'],
+    price: 6.99,
+    stock: 'out',
+    colorIdx: 5
+  },
+  {
+    id: 7,
+    model: 'Crystal Pro Max',
+    name: 'Crystal Pro Max — Peach Ice',
+    flavors: ['Peach Ice'],
+    price: 13.49,
+    stock: 'available',
+    colorIdx: 0
+  },
+  {
+    id: 8,
+    model: 'ELF BAR BC5000',
+    name: 'ELF BAR BC5000 — Cola Ice + Banana',
+    flavors: ['Cola Ice', 'Banana Ice'],
+    price: 12.99,
+    stock: 'available',
+    colorIdx: 1
+  },
+];
+
+const stockLabels = {
+  available: 'Dostupno',
+  low: 'Malo na stanju',
+  out: 'Nema na stanju'
+};
+
+function renderProducts() {
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = products.map(p => {
+    const color = vapeColors[p.colorIdx];
+    const stockClass = `stock-${p.stock}`;
+    const disabled = p.stock === 'out' ? 'disabled' : '';
+    return `
+    <div class="product-card fade-up">
+      <div class="product-visual">
+        <div class="product-visual-bg"></div>
+        ${vapeSVG(color)}
+      </div>
+      <div class="product-body">
+        <span class="product-model">${p.model}</span>
+        <h3 class="product-name">${p.name}</h3>
+        <div class="flavor-tags">
+          ${p.flavors.map(f => `<span class="flavor-tag">${f}</span>`).join('')}
+        </div>
+        <div class="product-footer">
+          <span class="product-price"><sup>€</sup>${p.price.toFixed(2)}</span>
+          <span class="stock-indicator ${stockClass}">
+            <span class="stock-dot"></span>
+            ${stockLabels[p.stock]}
+          </span>
+        </div>
+        <button class="add-btn" onclick="addToCart(${p.id})" ${disabled}>
+          ${p.stock === 'out' ? 'Nema na stanju' : '+ Rezerviraj'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== CART =====
+let cart = [];
+
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+  if (!product || product.stock === 'out') return;
+  const existing = cart.find(i => i.id === id);
+  if (existing) {
+    existing.qty = (existing.qty || 1) + 1;
+  } else {
+    cart.push({ ...product, qty: 1 });
+  }
+  updateCartUI();
+  openCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const badge = document.getElementById('cartBadge');
+  const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+  badge.textContent = total;
+  badge.classList.toggle('visible', total > 0);
+
+  const cartItems = document.getElementById('cartItems');
+  const cartEmpty = document.getElementById('cartEmpty');
+  const cartFooter = document.getElementById('cartFooter');
+
+  if (cart.length === 0) {
+    cartEmpty.style.display = 'block';
+    cartItems.innerHTML = '';
+    cartFooter.style.display = 'none';
+  } else {
+    cartEmpty.style.display = 'none';
+    cartFooter.style.display = 'block';
+    cartItems.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-icon">${['🌿','💨','🫧','🍇','🍋','❄️','🍑','🥤'][item.colorIdx % 8]}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.model}</div>
+          <div class="cart-item-flavor">${item.flavors.join(' + ')} ${item.qty > 1 ? `× ${item.qty}` : ''}</div>
+        </div>
+        <span class="cart-item-price">€${(item.price * (item.qty || 1)).toFixed(2)}</span>
+        <button class="remove-btn" onclick="removeFromCart(${item.id})">✕</button>
+      </div>
+    `).join('');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const sum = cart.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+    cartTotalEl.textContent = `€${sum.toFixed(2)}`;
+  }
+}
+
+function openCart() {
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCart() {
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('cartBtn').addEventListener('click', openCart);
+document.getElementById('closeCart').addEventListener('click', closeCart);
+document.getElementById('overlay').addEventListener('click', closeCart);
+
+// ===== RESERVATION FORM =====
+document.getElementById('reservationForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const name = document.getElementById('inputName').value.trim();
+  const phone = document.getElementById('inputPhone').value.trim();
+  if (!name || !phone) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Šalje se...';
+
+  // Simulate API call — swap with real POST in production:
+  // fetch('/api/rezervacija', { method: 'POST', headers: {'Content-Type':'application/json'},
+  //   body: JSON.stringify({ name, phone, email: inputEmail.value, cart }) })
+
+  setTimeout(() => {
+    document.getElementById('reservationForm').style.display = 'none';
+    document.getElementById('successMsg').classList.add('show');
+    cart = [];
+    updateCartUI();
+  }, 800);
+});
+
+// ===== POLL =====
+const pollData = [
+  { emoji: '🍓', name: 'Jagoda (Strawberry)', votes: 47 },
+  { emoji: '🥭', name: 'Mango Ice', votes: 38 },
+  { emoji: '🫐', name: 'Blueberry Raspberry', votes: 31 },
+  { emoji: '🍉', name: 'Watermelon', votes: 28 },
+  { emoji: '🍇', name: 'Grape Ice', votes: 24 },
+  { emoji: '🍋', name: 'Lemon Mint', votes: 19 },
+  { emoji: '🍑', name: 'Peach Ice', votes: 16 },
+  { emoji: '🥤', name: 'Cola Ice', votes: 13 },
+  { emoji: '🍫', name: 'Mixed Berry', votes: 11 },
+  { emoji: '🍌', name: 'Banana Ice', votes: 8 },
+];
+
+const POLL_KEY = 'vapor_poll_v1';
+let pollState = { votes: {}, myVote: null, revealed: false };
+
+function loadPoll() {
+  try {
+    const saved = localStorage.getItem(POLL_KEY);
+    if (saved) pollState = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function savePoll() {
+  localStorage.setItem(POLL_KEY, JSON.stringify(pollState));
+}
+
+function getTotalVotes() {
+  const base = pollData.reduce((s, p) => s + p.votes, 0);
+  return base + Object.values(pollState.votes).reduce((s, v) => s + v, 0);
+}
+
+function getVotesFor(idx) {
+  return pollData[idx].votes + (pollState.votes[idx] || 0);
+}
+
+function renderPoll() {
+  const container = document.getElementById('pollItems');
+  const total = getTotalVotes();
+
+  container.innerHTML = pollData.map((p, i) => {
+    const votes = getVotesFor(i);
+    const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+    const isMyVote = pollState.myVote === i;
+    return `
+    <div class="poll-item${pollState.revealed ? ' voted' : ''}${isMyVote ? ' my-pick' : ''}"
+         onclick="castVote(${i})">
+      <div class="poll-bar" id="pollBar${i}" style="width:${pollState.revealed ? pct : 0}%"></div>
+      <div class="poll-item-content">
+        <span class="poll-emoji">${p.emoji}</span>
+        <span class="poll-name">${p.name}</span>
+        <span class="poll-pct" id="pollPct${i}">${pct}%</span>
+        <span class="poll-votes-count" id="pollVotes${i}">${votes}</span>
+        <div class="poll-my-vote"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('pollTotal').textContent = `${total.toLocaleString('hr-HR')} glasova`;
+  if (pollState.revealed) {
+    document.querySelectorAll('.poll-item').forEach(el => el.classList.add('poll-revealed'));
+  }
+}
+
+function castVote(idx) {
+  if (pollState.myVote !== null && pollState.myVote !== idx) return;
+  if (pollState.myVote === idx) return;
+
+  pollState.myVote = idx;
+  pollState.revealed = true;
+  pollState.votes[idx] = (pollState.votes[idx] || 0) + 1;
+  savePoll();
+  renderPoll();
+  // Trigger animation
+  setTimeout(() => {
+    document.querySelectorAll('.poll-item').forEach((el, i) => {
+      el.classList.add('poll-revealed');
+      const total = getTotalVotes();
+      const votes = getVotesFor(i);
+      const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+      const bar = document.getElementById(`pollBar${i}`);
+      const pctEl = document.getElementById(`pollPct${i}`);
+      const votesEl = document.getElementById(`pollVotes${i}`);
+      if (bar) bar.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+      if (votesEl) votesEl.textContent = votes;
+    });
+    document.getElementById('pollTotal').textContent =
+      `${getTotalVotes().toLocaleString('hr-HR')} glasova`;
+  }, 50);
+}
+
+// ===== NAV SCROLL =====
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ===== BURGER MENU =====
+document.getElementById('burger').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// ===== FADE-IN ON SCROLL =====
+function observeFade() {
+  const els = document.querySelectorAll('.fade-up');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  els.forEach(el => io.observe(el));
+}
+
+// ===== INIT =====
+renderProducts();
+loadPoll();
+renderPoll();
+observeFade();
+// Auto-reveal if already voted
+if (pollState.revealed) {
+  setTimeout(() => {
+    document.querySelectorAll('.poll-item').forEach((el, i) => {
+      el.classList.add('poll-revealed');
+      const total = getTotalVotes();
+      const votes = getVotesFor(i);
+      const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+      const bar = document.getElementById(`pollBar${i}`);
+      if (bar) bar.style.width = pct + '%';
+    });
+  }, 300);
+}
+</script>
+</body>
+</html>
