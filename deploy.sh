@@ -102,10 +102,7 @@ if pm2 list | grep -q "$APP_NAME"; then
   warn "Aplikacija vec radi — restartujem..."
   pm2 restart "$APP_NAME" --update-env
 else
-  PORT=$PORT pm2 start server.js \
-    --name "$APP_NAME" \
-    --env production \
-    --
+  PORT=$PORT pm2 start server.js --name "$APP_NAME"
 fi
 
 # ─── PM2 startup (auto-start nakon reboota) ───
